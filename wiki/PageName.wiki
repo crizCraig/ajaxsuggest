@@ -322,4 +322,4 @@ stage = MySearchEnginePipeline(15)
 stage.start(queue_name='pipelinequeue')
 }}}
 
-Once all the tasks complete, each argument to _Sum_ will be ready and the barriers to _Sum_'s execution will be gone. Only at that time will _Sum_ execute and be returned from the Pipeline.
+Once all the tasks complete, each argument to _Sum_ will be ready and the barriers to _Sum_'s execution will be gone. _Sum_ will then execute and the result will be yielded from the _MySearchEnginePipeline_.
