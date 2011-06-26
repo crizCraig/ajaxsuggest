@@ -295,7 +295,7 @@ _TODO: Talk about explicit abort and retry_
 
 One of the most powerful aspects of the Pipeline API is the ability to achieve parallelism in a simple, succinct, and elegant syntax.
 
-Let's look at the example of a search engine described by Brett Slatkin [http://www.youtube.com/watch?v=Rsfy_TYA2ZY&t=35m13s here] (35:13):
+Let's look at the example of a search engine described by Brett Slatkin [http://www.youtube.com/watch?v=Rsfy_TYA2ZY&t=35m13s here (35:13)]:
 
 {{{
 class WordCountUrl(pipeline.Pipeline):
