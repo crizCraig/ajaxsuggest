@@ -322,4 +322,4 @@ stage = MySearchEnginePipeline(15)
 stage.start(queue_name='pipelinequeue')
 }}}
 
-Once all the tasks processing the word counts complete, each argument to _Sum_ will be ready. In other words, the barriers to _Sum_'s execution will be gone. _Sum_ will then execute and the result will be yielded by _MySearchEnginePipeline_.
+Once all the tasks processing word counts complete, each argument to _Sum_ will be ready. In other words, the barriers to _Sum_'s execution will be gone. _Sum_ will then execute and the result will be yielded by _MySearchEnginePipeline_.
