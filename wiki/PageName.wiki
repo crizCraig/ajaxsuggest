@@ -315,7 +315,7 @@ class MySearchEnginePipeline(pipeline.Pipeline):
     yield Sum(*results) # Barrier waits
 }}}
 
-This simple code has the effect of starting taskqueue tasks for each _url_ in _urls_. These tasks will tend to execute in parallel and will start allocating additional instances of your app in order to accomodate the size of the job. You can define the rate at which these tasks execute [http://code.google.com/appengine/docs/python/config/queue.html in your queue configuration]. If you want to use a queue other than _default_, then call the pipeline start with the queue_name named argument like so:
+This simple code has the effect of starting taskqueue tasks for each in _urls_. These tasks will tend to execute in parallel and will start allocating additional instances of your app in order to accomodate the size of the job. You can define the rate and manner that these tasks execute [http://code.google.com/appengine/docs/python/config/queue.html in your queue configuration]. If you want to use a queue other than default, then call the pipeline start method with the queue_name argument like so:
 
 {{{
 stage = MySearchEnginePipeline(15)
