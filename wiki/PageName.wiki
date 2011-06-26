@@ -295,7 +295,7 @@ _TODO: Talk about explicit abort and retry_
 
 One of the most powerful aspects of the Pipeline API is the ability to achieve parallelism in a simple, succinct, and elegant syntax.
 
-Let's look at the example of a search engine first described at [http://www.youtube.com/watch?v=Rsfy_TYA2ZY&t=35m13s Google I/O 2011 by Brett Slatkin] (35:13):
+Let's look at the example of a search engine described by Brett Slatkin [http://www.youtube.com/watch?v=Rsfy_TYA2ZY&t=35m13s here] (35:13):
 
 {{{
 class WordCountUrl(pipeline.Pipeline):
@@ -304,35 +304,22 @@ class WordCountUrl(pipeline.Pipeline):
     return len(r.data.split())
 
 class Sum(pipeline.Pipeline):
-def run(self, *values):
-return sum(values)
+  def run(self, *values):
+    return sum(values)
 
-class MyPipeline(pipeline.Pipeline):
-def run(self, *urls):
-results = []
-for u in urls:
-r.append((yield WordCountUrl(u))
-yield Sum(*results) # Barrier waits
+class MySearchEnginePipeline(pipeline.Pipeline):
+  def run(self, *urls):
+    results = []
+    for u in urls:
+      results.append( (yield WordCountUrl(u)) )
+    yield Sum(*results) # Barrier waits
 }}}
 
-Note how jobs that are not within 'with' blocks will run out-of-order even though they're declared in order. You can use the InOrder operator to achieve the same effect:
+This simple code has the effect of starting taskqueue tasks for each _url_ in _urls_. These tasks all execute in parallel and will start allocating additional instances of your app in order to accomodate the size of the job. You can define the rate at which these tasks execute [http://code.google.com/appengine/docs/python/config/queue.html in your queue configuration]. If you want to use a queue other than _default_, then call the pipeline start with the queue_name named argument like so:
 
 {{{
-class LogWaitLogInOrder(pipeline.Pipeline):
-
-  def run(self, message1, message2, delay):
-    with pipeline.InOrder():
-      yield LogMessage(message1)
-      yield Delay(seconds=delay)
-      yield LogMessage(message2)
-
-    yield LogMessage('This would happen immediately on run')
+stage = MySearchEnginePipeline(15)
+stage.start(queue_name='pipelinequeue')
 }}}
 
-An After operator may be nested with itself or InOrder operators, but InOrder operators cannot be nested within themselves. One or more PipelineFutures may be passed to the After operator.
-
-Unfortunately, the Python 'with' operator is not on by default in Python 2.5, so you will need to activate it by adding this magical line to the top of your Python file (after any #!/usr/bin/python2.5 declarations):
-
-{{{
-from __future__ import with_statement
-}}}
+Once all the tasks complete, each argument to _Sum_ will be ready and the barriers to _Sum_'s execution will be gone. Only at that time will _Sum_ execute and be returned from the Pipeline.
