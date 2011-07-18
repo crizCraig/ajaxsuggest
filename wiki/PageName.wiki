@@ -298,28 +298,36 @@ One of the most powerful aspects of the Pipeline API is the ability to achieve p
 Let's look at the example of a search engine described by Brett Slatkin [http://www.youtube.com/watch?v=Rsfy_TYA2ZY&t=35m13s here (35:13)]:
 
 {{{
+from pipeline import pipeline
+
 class WordCountUrl(pipeline.Pipeline):
-  def run(self, url):
-    r = urlfetch.fetch(url)
-    return len(r.data.split())
+    def run(self, url):
+        from google.appengine.api import urlfetch
+        r = urlfetch.fetch(url)
+        return len(r.content.split())
 
 class Sum(pipeline.Pipeline):
-  def run(self, *values):
-    return sum(values)
+    def run(self, *values):
+        return sum(values)
 
 class MySearchEnginePipeline(pipeline.Pipeline):
-  def run(self, *urls):
-    results = []
-    for u in urls:
-      results.append( (yield WordCountUrl(u)) )
-    yield Sum(*results) # Barrier waits
+    def run(self, *urls):
+        results = []
+        for u in urls:
+            results.append( (yield WordCountUrl(u)) )
+        yield Sum(*results) # Barrier waits
+
+    def finalized(self):
+        # remove this override to enable base version that sends email
+        pass
 }}}
 
-This simple code has the effect of starting [http://code.google.com/appengine/docs/python/taskqueue/overview.html taskqueue tasks] for each url in _urls_. These tasks will tend to execute in parallel and App Engine will start allocating additional [http://code.google.com/appengine/docs/adminconsole/instances.html instances] of the app in order to accomodate the size of the job. You can define the rate and manner that these tasks execute [http://code.google.com/appengine/docs/python/config/queue.html in your queue configuration]. If you want to use a queue other than default, then call the pipeline _start_ method with the queue_name argument like so:
+This simple code has the effect of starting [http://code.google.com/appengine/docs/python/taskqueue/overview.html taskqueue tasks] for each url in _urls_. These tasks will tend to execute in parallel and App Engine will start allocating additional [http://code.google.com/appengine/docs/adminconsole/instances.html instances] of the app in order to accomodate the size of the job. You can define the rate and manner that these tasks execute [http://code.google.com/appengine/docs/python/config/queue.html in your queue configuration]. If you want to use a task queue other than default, then call the pipeline _start_ method with the queue_name argument like so:
 
 {{{
-stage = MySearchEnginePipeline(15)
-stage.start(queue_name='pipelinequeue')
+stage = MySearchEnginePipeline('http://google.com/', 'http://yahoo.com/')
+stage.start()
+self.redirect('/_ah/pipeline/status?root=%s' % stage.pipeline_id)
 }}}
 
 Once all the tasks processing word counts complete, each argument to _Sum_ will be ready. In other words, the barriers to _Sum_'s execution will be gone. _Sum_ will then execute and the result will be yielded by _MySearchEnginePipeline_.
