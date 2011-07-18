@@ -326,7 +326,7 @@ This simple code has the effect of starting [http://code.google.com/appengine/do
 
 {{{
 stage = MySearchEnginePipeline('http://google.com/', 'http://yahoo.com/')
-stage.start()
+stage.start(queue_name='pipeline_task_queue')
 self.redirect('/_ah/pipeline/status?root=%s' % stage.pipeline_id)
 }}}
 
